@@ -17,11 +17,11 @@ export class AuthService {
         private jwtService: JwtService) { }
 
     async signUp(signUpDto: SignUpDto) {
-        try{
+        try {
             const { name, email, role, password } = signUpDto;
             console.log('Creating user in the database');
             const hashedPassword = await bcrypt.hash(password, 10);
-    
+
             const user = await this.userModel.create({
                 name,
                 email,
@@ -30,27 +30,27 @@ export class AuthService {
             });
             console.log(user);
             const token = this.jwtService.sign({ id: user._id })
-    
+
             return { token };
-        }catch(err){
+        } catch (err) {
             console.log(err)
         }
-      
+
     }
 
     async login(loginDto: LoginDto): Promise<{ token: string }> {
-        const { email, password } = loginDto;
+        const { email, password, role } = loginDto;
 
         const user = await this.userModel.findOne({ email })
 
         if (!user) {
-            throw new UnauthorizedException('Invalid email or password.')
+            throw new UnauthorizedException('User Not Found.')
         }
 
         const isPasswordMatched = await bcrypt.compare(password, user.password);
 
         if (!isPasswordMatched) {
-            throw new UnauthorizedException('Invalid email or password.');
+            throw new UnauthorizedException('Invalid password.');
         }
         const token = this.jwtService.sign({ id: user._id })
         return { token };

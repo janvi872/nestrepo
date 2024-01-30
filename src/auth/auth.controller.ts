@@ -1,9 +1,10 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Post, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Get, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { LoginGuard } from './guards/login.guard';
+import { Role, RoleAllowed } from './decorator/role-allowed';
 
 @Controller('auth')
 export class AuthController {
@@ -16,8 +17,10 @@ export class AuthController {
     }
 
     @Get('/login')
-    @UseGuards(new LoginGuard())
-    login(@Body() loginDto: LoginDto): Promise<{ token: string }> {
-        return this.authService.login(loginDto);
+    @UseGuards(LoginGuard)
+    @RoleAllowed([Role.ADMIN])
+    @HttpCode(HttpStatus.OK)
+    async login(@Body() loginDto: LoginDto): Promise<{ token: string }> {
+        return await this.authService.login(loginDto);
     }
 }
